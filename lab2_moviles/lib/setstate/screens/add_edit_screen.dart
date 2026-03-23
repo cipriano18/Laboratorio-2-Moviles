@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../models/todo.dart';
+import '/../models/todo.dart';
 
 /// Pantalla de formulario para agregar una tarea nueva o editar una existente.
 /// Si [tareaExistente] es null → modo agregar.

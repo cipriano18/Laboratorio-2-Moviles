@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:lab2_moviles/models/todo.dart';
-import 'package:lab2_moviles/data/TodoList.dart';
+import 'package:lab2_moviles/setstate/data/TodoList.dart';
 import 'package:lab2_moviles/widgets/todo_card.dart';
 import 'package:lab2_moviles/widgets/search_bar_widget.dart';
-import 'package:lab2_moviles/screens/add_edit_screen.dart';
+import 'package:lab2_moviles/setstate/screens/add_edit_screen.dart';
 import 'package:lab2_moviles/theme/app_theme.dart';
 
 class TodosScreen extends StatefulWidget {

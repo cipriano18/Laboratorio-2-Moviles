@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:lab2_moviles/screens/home_screen.dart';
+import 'package:lab2_moviles/setstate/screens/home_screen.dart';
 import 'package:lab2_moviles/theme/app_theme.dart';
 
 void main() {

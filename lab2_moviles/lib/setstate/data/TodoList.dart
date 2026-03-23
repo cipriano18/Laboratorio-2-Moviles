@@ -1,4 +1,4 @@
-import '../models/todo.dart';
+import '../../models/todo.dart';
 
 class TodoList {
   List<Todo> todos = [];
