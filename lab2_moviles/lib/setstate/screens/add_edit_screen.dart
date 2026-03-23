@@ -78,13 +78,6 @@ class _AddEditScreenState extends State<AddEditScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(_modoEdicion ? 'Editar tarea' : 'Nueva tarea'),
-        actions: [
-          TextButton.icon(
-            onPressed: _guardar,
-            icon: const Icon(Icons.check_rounded),
-            label: const Text('Guardar'),
-          ),
-        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
