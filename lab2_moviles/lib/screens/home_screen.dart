@@ -1,72 +1,74 @@
 import 'package:flutter/material.dart';
-import 'package:lab2_moviles/models/place.dart';
-import 'package:lab2_moviles/data/place_list.dart';
-import 'package:lab2_moviles/widgets/place_card.dart';
+import 'package:lab2_moviles/models/todo.dart';
+import 'package:lab2_moviles/data/TodoList.dart';
+import 'package:lab2_moviles/widgets/todo_card.dart';
 import 'package:lab2_moviles/widgets/search_bar_widget.dart';
 import 'package:lab2_moviles/screens/add_edit_screen.dart';
+import 'package:lab2_moviles/theme/app_theme.dart';
 
-class PlacesScreen extends StatefulWidget {
-  const PlacesScreen({super.key});
+class TodosScreen extends StatefulWidget {
+  const TodosScreen({super.key});
 
   @override
-  State<PlacesScreen> createState() => _PlacesScreenState();
+  State<TodosScreen> createState() => _TodosScreenState();
 }
 
-class _PlacesScreenState extends State<PlacesScreen> {
-  final PlaceList _placeList = PlaceList();
+class _TodosScreenState extends State<TodosScreen> {
+  final TodoList _todoList = TodoList();
   String _query = '';
-  int _nextId = 1;
 
   @override
   void initState() {
     super.initState();
-    _placeList.addPlace(
-      const Place(
+    _todoList.addTodo(
+      Todo(
         id: '1',
-        name: 'Monte Verde',
-        address: 'Puntarenas, Costa Rica',
+        title: 'Comprar víveres',
+        description: 'Leche, huevos, pan y frutas',
+        dueDate: DateTime.now().add(const Duration(days: 1)),
       ),
     );
-    _placeList.addPlace(
-      const Place(
+    _todoList.addTodo(
+      Todo(
         id: '2',
-        name: 'Volcán Arenal',
-        address: 'La Fortuna, Alajuela',
-        isVisited: true,
+        title: 'Estudiar Flutter',
+        description: 'Repasar widgets y navegación',
+        dueDate: DateTime.now().add(const Duration(days: 3)),
+        isDone: true,
       ),
     );
-    _placeList.addPlace(
-      const Place(
+    _todoList.addTodo(
+      Todo(
         id: '3',
-        name: 'Playa Manuel Antonio',
-        address: 'Quepos, Puntarenas',
+        title: 'Llamar al médico',
+        description: 'Agendar cita de revisión anual',
+        dueDate: DateTime.now().subtract(const Duration(days: 1)), // vencida
       ),
     );
-    _nextId = 4;
   }
 
   // ── Filtro ─────────────────────────────────────────────────────────────────
-  List<Place> get _filteredPlaces {
-    final all = _placeList.getPlaces();
+  List<Todo> get _filteredTodos {
+    final all = _todoList.getTodos();
     if (_query.isEmpty) return all;
     final lower = _query.toLowerCase();
     return all
         .where(
-          (p) =>
-              p.name.toLowerCase().contains(lower) ||
-              p.address.toLowerCase().contains(lower),
+          (t) =>
+              t.title.toLowerCase().contains(lower) ||
+              t.description.toLowerCase().contains(lower),
         )
         .toList();
   }
 
   // ── Handlers ───────────────────────────────────────────────────────────────
-  void _toggleVisited(String id) {
-    setState(() => _placeList.toggleVisited(id));
+  void _toggleDone(String id) {
+    setState(() => _todoList.toggleDone(id));
   }
 
-  void _deletePlace(String id) {
-    final place = _placeList.places.firstWhere((p) => p.id == id);
-    setState(() => _placeList.deletePlaces(place));
+  void _deleteTodo(String id) {
+    final todo = _todoList.todos.firstWhere((t) => t.id == id);
+    setState(() => _todoList.deleteTodo(todo));
   }
 
   void _onSearchChanged(String value) {
@@ -74,33 +76,25 @@ class _PlacesScreenState extends State<PlacesScreen> {
   }
 
   // ── Navegar a AddEditScreen ────────────────────────────────────────────────
-  Future<void> _openFormScreen({Place? existing}) async {
-    final result = await Navigator.push<Place>(
+  Future<void> _openFormScreen({Todo? existing}) async {
+    final result = await Navigator.push<Todo>(
       context,
       MaterialPageRoute(
-        builder: (_) => AddEditScreen(lugarExistente: existing),
+        builder: (_) => AddEditScreen(tareaExistente: existing),
       ),
     );
 
-    // Si el usuario canceló, result es null
     if (result == null) return;
 
     setState(() {
       if (existing == null) {
-        // CREATE
-        _placeList.addPlace(
-          Place(
-            id: (_nextId++).toString(),
-            name: result.name,
-            address: result.address,
-          ),
-        );
+        _todoList.addTodo(result);
       } else {
-        // EDIT
-        _placeList.editPlace(
+        _todoList.editTodo(
           existing.id,
-          name: result.name,
-          address: result.address,
+          title: result.title,
+          description: result.description,
+          dueDate: result.dueDate,
         );
       }
     });
@@ -109,40 +103,64 @@ class _PlacesScreenState extends State<PlacesScreen> {
   // ── UI ─────────────────────────────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
-    final filtered = _filteredPlaces;
+    final filtered = _filteredTodos;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Mis Lugares'),
+        title: const Text('Mis Tareas'),
         actions: [
+          // ── Badge contador ──────────────────────────────
+          Center(
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 300),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+              decoration: BoxDecoration(
+                color: AppTheme.primary.withOpacity(0.12),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Text(
+                '${_todoList.getNotDone().length} pendientes',
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: AppTheme.primary,
+                ),
+              ),
+            ),
+          ),
+          // ── Filtro ──────────────────────────────────────
           PopupMenuButton<String>(
             icon: const Icon(Icons.filter_alt),
             onSelected: (value) {
               setState(() {
                 switch (value) {
-                  case 'nameAsc':
-                    _placeList.sortByName();
+                  case 'titleAsc':
+                    _todoList.sortByTitle();
                     break;
-                  case 'nameDesc':
-                    _placeList.sortByNameDesc();
+                  case 'titleDesc':
+                    _todoList.sortByTitleDesc();
                     break;
-                  case 'visited':
-                    _placeList.sortByVisited();
+                  case 'done':
+                    _todoList.sortByDone();
                     break;
-                  case 'notVisited':
-                    _placeList.sortByNotVisited();
+                  case 'notDone':
+                    _todoList.sortByNotDone();
+                    break;
+                  case 'dueDate':
+                    _todoList.sortByDueDate();
                     break;
                 }
               });
             },
             itemBuilder: (_) => const [
-              PopupMenuItem(value: 'nameAsc', child: Text('Nombre A-Z')),
-              PopupMenuItem(value: 'nameDesc', child: Text('Nombre Z-A')),
-              PopupMenuItem(value: 'visited', child: Text('Visitados primero')),
+              PopupMenuItem(value: 'titleAsc', child: Text('Título A-Z')),
+              PopupMenuItem(value: 'titleDesc', child: Text('Título Z-A')),
+              PopupMenuItem(value: 'done', child: Text('Completadas primero')),
               PopupMenuItem(
-                value: 'notVisited',
-                child: Text('No visitados primero'),
+                value: 'notDone',
+                child: Text('Pendientes primero'),
               ),
+              PopupMenuItem(value: 'dueDate', child: Text('Por fecha límite')),
             ],
           ),
         ],
@@ -152,16 +170,16 @@ class _PlacesScreenState extends State<PlacesScreen> {
           SearchBarWidget(onChanged: _onSearchChanged),
           Expanded(
             child: filtered.isEmpty
-                ? const Center(child: Text('No hay lugares que coincidan'))
+                ? const Center(child: Text('No hay tareas que coincidan'))
                 : ListView.builder(
                     itemCount: filtered.length,
                     itemBuilder: (context, index) {
-                      final place = filtered[index];
-                      return PlaceCard(
-                        place: place,
-                        onToggleVisited: () => _toggleVisited(place.id),
-                        onDelete: () => _deletePlace(place.id),
-                        onEdit: () => _openFormScreen(existing: place),
+                      final todo = filtered[index];
+                      return TodoCard(
+                        todo: todo,
+                        onToggleDone: () => _toggleDone(todo.id),
+                        onDelete: () => _deleteTodo(todo.id),
+                        onEdit: () => _openFormScreen(existing: todo),
                       );
                     },
                   ),
@@ -170,7 +188,7 @@ class _PlacesScreenState extends State<PlacesScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _openFormScreen(),
-        child: const Icon(Icons.add),
+        child: const Icon(Icons.add_task_rounded),
       ),
     );
   }

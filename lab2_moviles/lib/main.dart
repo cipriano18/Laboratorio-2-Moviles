@@ -14,7 +14,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Mis Lugares',
       theme: AppTheme.light,
-      home: const PlacesScreen(),
+      home: const TodosScreen(),
     );
   }
 }
